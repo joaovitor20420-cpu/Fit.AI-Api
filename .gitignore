@@ -1,4 +1,10 @@
 node_modules
 /src/generated/prisma
 .env
+.env.*
 .dist
+tsc_errors.txt
+.DS_Store
+.env.local
+.env.example
+.env.production
