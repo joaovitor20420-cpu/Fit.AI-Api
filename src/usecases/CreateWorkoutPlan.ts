@@ -56,17 +56,20 @@ export class CreateWorkoutPlan {
       }
       const createdPlan = await tx.workoutPlan.create({
         data: {
+          id: crypto.randomUUID(),
           name: dto.name,
           userId: dto.userId,
           isActive: true,
           workoutDays: {
             create: dto.workoutDays.map((workoutDay) => ({
+              id: crypto.randomUUID(),
               name: workoutDay.name,
               weekDay: workoutDay.weekDay,
               isRest: workoutDay.isRest,
               estimatedDurationSeconds: workoutDay.estimatedDurationInSeconds,
               workoutExercises: {
                 create: workoutDay.exercises.map((exercise) => ({
+                  id: crypto.randomUUID(),
                   order: exercise.order,
                   name: exercise.name,
                   sets: exercise.sets,
