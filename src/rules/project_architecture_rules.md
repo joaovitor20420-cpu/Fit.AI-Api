@@ -46,6 +46,7 @@ O projeto divide as responsabilidades em camadas distintas:
 - **Responsabilidade:** Centralizar a definição das validações (Zod) que serão reutilizadas em rotas, tanto para validação de payload quanto para a documentação automática.
 - **Regras:**
   - Exportar schemas reaproveitáveis de `src/schemas/index.ts` (ex: `ErrorSchema`, `workoutPlanSchema`).
+  - **Enums do Prisma:** Sempre validar campos do tipo enum usando `z.nativeEnum(EnumName)` importado de `../generated/prisma/enums.js`. Nunca usar `z.string()` para representar enums.
 
 ### D) Lib e Configurações (`src/lib/`)
 

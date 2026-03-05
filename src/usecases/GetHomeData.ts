@@ -1,18 +1,19 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
 
+import { WeekDay } from "../generated/prisma/enums.js";
 import { prisma } from "../lib/db.js";
 
 dayjs.extend(utc);
 
-const WEEKDAY_MAP: Record<number, string> = {
-  0: "SUNDAY",
-  1: "MONDAY",
-  2: "TUESDAY",
-  3: "WEDNESDAY",
-  4: "THURSDAY",
-  5: "FRIDAY",
-  6: "SATURDAY",
+const WEEKDAY_MAP: Record<number, WeekDay> = {
+  0: WeekDay.SUNDAY,
+  1: WeekDay.MONDAY,
+  2: WeekDay.TUESDAY,
+  3: WeekDay.WEDNESDAY,
+  4: WeekDay.THURSDAY,
+  5: WeekDay.FRIDAY,
+  6: WeekDay.SATURDAY,
 };
 
 export interface InputDto {
@@ -27,7 +28,7 @@ export interface OutputDto {
     id: string;
     name: string;
     isRest: boolean;
-    weekDay: string;
+    weekDay: WeekDay;
     estimatedDurationInSeconds: number;
     coverImageUrl?: string | null;
     exercisesCount: number;

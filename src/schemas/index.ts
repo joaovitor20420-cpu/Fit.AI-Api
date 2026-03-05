@@ -47,7 +47,7 @@ export const homeDataSchema = z.object({
     id: z.string().uuid(),
     name: z.string(),
     isRest: z.boolean(),
-    weekDay: z.string(),
+    weekDay: z.nativeEnum(WeekDay),
     estimatedDurationInSeconds: z.number(),
     coverImageUrl: z.string().url().nullish(),
     exercisesCount: z.number(),
