@@ -30,6 +30,14 @@ export const workoutPlanSchema = z.object({
   ),
 });
 
+export const listWorkoutPlansSchema = z.object({
+  workoutPlans: z.array(
+    workoutPlanSchema.extend({
+      id: z.string().uuid(),
+    }),
+  ),
+});
+
 export const startWorkoutSessionSchema = z.object({
   workoutSessionId: z.string().uuid(),
 });
