@@ -78,7 +78,7 @@ model WorkoutSession {
   workoutDayId String
   workoutDay   WorkoutDay @relation(fields: [workoutDayId], references: [id], onDelete: Cascade)
   startedAt    DateTime   @db.Timestamptz()
-  completedAt  DateTime   @db.Timestamptz()
+  completedAt  DateTime?  @db.Timestamptz()
   createdAt    DateTime   @default(now()) @db.Timestamptz()
   updatedAt    DateTime   @updatedAt @db.Timestamptz()
 }
