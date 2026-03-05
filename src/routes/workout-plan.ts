@@ -7,6 +7,7 @@ import { WeekDay } from "../generated/prisma/enums.js";
 import { auth } from "../lib/auth.js";
 import {
   ErrorSchema,
+  getWorkoutDaySchema,
   getWorkoutPlanSchema,
   startWorkoutSessionSchema,
   updateWorkoutSessionSchema,
@@ -17,6 +18,11 @@ import {
   InputDto,
   OutputDto,
 } from "../usecases/CreateWorkoutPlan.js";
+import {
+  GetWorkoutDay,
+  InputDto as GetDayInputDto,
+  OutputDto as GetDayOutputDto,
+} from "../usecases/GetWorkoutDay.js";
 import {
   GetWorkoutPlan,
   InputDto as GetPlanInputDto,
@@ -314,6 +320,76 @@ export const workoutPlanRoutes = async (app: FastifyInstance) => {
           return reply.status(404).send({
             error: error.message,
             code: "WORKOUT_PLAN_NOT_FOUND",
+          });
+        }
+        if (error instanceof Error && error.message === "Forbidden") {
+          return reply.status(403).send({
+            error: "Forbidden",
+            code: "FORBIDDEN",
+          });
+        }
+        throw error;
+      }
+    },
+  });
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: "GET",
+    url: "/:workoutPlanId/days/:workoutDayId",
+    schema: {
+      tags: ["Workout Plan"],
+      summary: "Get a workout day",
+      description: "Returns a workout day with its exercises and sessions",
+      params: z.object({
+        workoutPlanId: z.string().uuid(),
+        workoutDayId: z.string().uuid(),
+      }),
+      response: {
+        200: getWorkoutDaySchema,
+        401: ErrorSchema,
+        403: ErrorSchema,
+        404: ErrorSchema,
+        500: ErrorSchema,
+      },
+    },
+    handler: async (request, reply) => {
+      const session = await auth.api.getSession({
+        headers: fromNodeHeaders(request.headers),
+      });
+      if (!session) {
+        return reply.status(401).send({
+          error: "Unauthorized",
+          code: "UNAUTHORIZED",
+        });
+      }
+
+      const dto: GetDayInputDto = {
+        userId: session.user.id,
+        workoutPlanId: request.params.workoutPlanId,
+        workoutDayId: request.params.workoutDayId,
+      };
+
+      try {
+        const getWorkoutDay = new GetWorkoutDay();
+        const result: GetDayOutputDto = await getWorkoutDay.execute(dto);
+        return reply.status(200).send(result);
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message === "Workout plan not found"
+        ) {
+          return reply.status(404).send({
+            error: error.message,
+            code: "WORKOUT_PLAN_NOT_FOUND",
+          });
+        }
+        if (
+          error instanceof Error &&
+          error.message === "Workout day not found"
+        ) {
+          return reply.status(404).send({
+            error: error.message,
+            code: "WORKOUT_DAY_NOT_FOUND",
           });
         }
         if (error instanceof Error && error.message === "Forbidden") {
