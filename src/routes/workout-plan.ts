@@ -7,6 +7,7 @@ import { WeekDay } from "../generated/prisma/enums.js";
 import { auth } from "../lib/auth.js";
 import {
   ErrorSchema,
+  getWorkoutPlanSchema,
   startWorkoutSessionSchema,
   updateWorkoutSessionSchema,
   workoutPlanSchema,
@@ -16,6 +17,11 @@ import {
   InputDto,
   OutputDto,
 } from "../usecases/CreateWorkoutPlan.js";
+import {
+  GetWorkoutPlan,
+  InputDto as GetPlanInputDto,
+  OutputDto as GetPlanOutputDto,
+} from "../usecases/GetWorkoutPlan.js";
 import {
   InputDto as StartSessionInputDto,
   OutputDto as StartSessionOutputDto,
@@ -249,6 +255,65 @@ export const workoutPlanRoutes = async (app: FastifyInstance) => {
           return reply.status(404).send({
             error: error.message,
             code: "WORKOUT_SESSION_NOT_FOUND",
+          });
+        }
+        if (error instanceof Error && error.message === "Forbidden") {
+          return reply.status(403).send({
+            error: "Forbidden",
+            code: "FORBIDDEN",
+          });
+        }
+        throw error;
+      }
+    },
+  });
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: "GET",
+    url: "/:workoutPlanId",
+    schema: {
+      tags: ["Workout Plan"],
+      summary: "Get a workout plan",
+      description: "Returns a workout plan with its days and exercise counts",
+      params: z.object({
+        workoutPlanId: z.string().uuid(),
+      }),
+      response: {
+        200: getWorkoutPlanSchema,
+        401: ErrorSchema,
+        403: ErrorSchema,
+        404: ErrorSchema,
+        500: ErrorSchema,
+      },
+    },
+    handler: async (request, reply) => {
+      const session = await auth.api.getSession({
+        headers: fromNodeHeaders(request.headers),
+      });
+      if (!session) {
+        return reply.status(401).send({
+          error: "Unauthorized",
+          code: "UNAUTHORIZED",
+        });
+      }
+
+      const dto: GetPlanInputDto = {
+        userId: session.user.id,
+        workoutPlanId: request.params.workoutPlanId,
+      };
+
+      try {
+        const getWorkoutPlan = new GetWorkoutPlan();
+        const result: GetPlanOutputDto = await getWorkoutPlan.execute(dto);
+        return reply.status(200).send(result);
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message === "Workout plan not found"
+        ) {
+          return reply.status(404).send({
+            error: error.message,
+            code: "WORKOUT_PLAN_NOT_FOUND",
           });
         }
         if (error instanceof Error && error.message === "Forbidden") {
