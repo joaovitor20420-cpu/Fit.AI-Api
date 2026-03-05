@@ -1,13 +1,15 @@
 import { WeekDay } from "../generated/prisma/enums.js";
 import { prisma } from "../lib/db.js";
 
-interface InputDto {
+export interface InputDto {
   userId: string;
   name: string;
+  coverImageUrl?: string;
   workoutDays: Array<{
     name: string;
     weekDay: WeekDay;
     isRest: boolean;
+    coverImageUrl?: string;
     estimatedDurationInSeconds: number;
     exercises: Array<{
       order: number;
@@ -22,10 +24,12 @@ interface InputDto {
 export interface OutputDto {
   id: string;
   name: string;
+  coverImageUrl?: string | null;
   workoutDays: Array<{
     name: string;
     weekDay: WeekDay;
     isRest: boolean;
+    coverImageUrl?: string | null;
     estimatedDurationInSeconds: number;
     exercises: Array<{
       order: number;
@@ -58,6 +62,7 @@ export class CreateWorkoutPlan {
         data: {
           id: crypto.randomUUID(),
           name: dto.name,
+          coverImageUrl: dto.coverImageUrl,
           userId: dto.userId,
           isActive: true,
           workoutDays: {
@@ -66,6 +71,7 @@ export class CreateWorkoutPlan {
               name: workoutDay.name,
               weekDay: workoutDay.weekDay,
               isRest: workoutDay.isRest,
+              coverImageUrl: workoutDay.coverImageUrl,
               estimatedDurationSeconds: workoutDay.estimatedDurationInSeconds,
               workoutExercises: {
                 create: workoutDay.exercises.map((exercise) => ({
@@ -98,10 +104,12 @@ export class CreateWorkoutPlan {
       return {
         id: plan.id,
         name: plan.name,
+        coverImageUrl: plan.coverImageUrl,
         workoutDays: plan.workoutDays.map((day) => ({
           name: day.name,
           weekDay: day.weekDay,
           isRest: day.isRest,
+          coverImageUrl: day.coverImageUrl,
           estimatedDurationInSeconds: day.estimatedDurationSeconds,
           exercises: day.workoutExercises.map((ex) => ({
             order: ex.order,

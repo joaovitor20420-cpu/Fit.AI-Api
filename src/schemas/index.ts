@@ -9,11 +9,13 @@ export const ErrorSchema = z.object({
 
 export const workoutPlanSchema = z.object({
   name: z.string().trim().min(1),
+  coverImageUrl: z.string().url().nullish(),
   workoutDays: z.array(
     z.object({
       name: z.string().trim().min(1),
       weekDay: z.nativeEnum(WeekDay),
       isRest: z.boolean().default(false),
+      coverImageUrl: z.string().url().nullish(),
       estimatedDurationInSeconds: z.number().min(1),
       exercises: z.array(
         z.object({

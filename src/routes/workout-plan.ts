@@ -6,7 +6,11 @@ import z from "zod";
 import { WeekDay } from "../generated/prisma/enums.js";
 import { auth } from "../lib/auth.js";
 import { ErrorSchema, workoutPlanSchema } from "../schemas/index.js";
-import { CreateWorkoutPlan } from "../usecases/CreateWorkoutPlan.js";
+import {
+  CreateWorkoutPlan,
+  InputDto,
+  OutputDto,
+} from "../usecases/CreateWorkoutPlan.js";
 
 export const workoutPlanRoutes = async (app: FastifyInstance) => {
   app.withTypeProvider<ZodTypeProvider>().route({
@@ -15,11 +19,13 @@ export const workoutPlanRoutes = async (app: FastifyInstance) => {
     schema: {
       body: z.object({
         name: z.string().trim().min(1),
+        coverImageUrl: z.string().url().optional(),
         workoutDays: z.array(
           z.object({
             name: z.string().trim().min(1),
             weekDay: z.nativeEnum(WeekDay),
             isRest: z.boolean().default(false),
+            coverImageUrl: z.string().url().optional(),
             estimatedDurationInSeconds: z.number().min(1),
             exercises: z.array(
               z.object({
@@ -34,7 +40,9 @@ export const workoutPlanRoutes = async (app: FastifyInstance) => {
         ),
       }),
       response: {
-        201: workoutPlanSchema,
+        201: workoutPlanSchema.extend({
+          id: z.string().uuid(),
+        }),
         400: ErrorSchema,
         401: ErrorSchema,
         404: ErrorSchema,
@@ -51,12 +59,14 @@ export const workoutPlanRoutes = async (app: FastifyInstance) => {
           code: "UNAUTHORIZED",
         });
       }
-      const createWorkoutPlan = new CreateWorkoutPlan();
-      const result = await createWorkoutPlan.execute({
+      const dto: InputDto = {
         userId: session.user.id,
         name: request.body.name,
+        coverImageUrl: request.body.coverImageUrl,
         workoutDays: request.body.workoutDays,
-      });
+      };
+      const createWorkoutPlan = new CreateWorkoutPlan();
+      const result: OutputDto = await createWorkoutPlan.execute(dto);
       return reply.status(201).send(result);
     },
   });

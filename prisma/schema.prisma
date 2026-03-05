@@ -35,9 +35,10 @@ model User {
 
 model WorkoutPlan {
   id          String       @id @default(uuid())
-  name        String
-  userId      String
-  user        User         @relation(fields: [userId], references: [id])
+  name           String
+  coverImageUrl  String?
+  userId         String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   workoutDays WorkoutDay[]
   isActive    Boolean      @default(true)
   createdAt   DateTime     @default(now()) @db.Timestamptz()
@@ -48,12 +49,13 @@ model WorkoutDay {
   id                       String            @id @default(uuid())
   name                     String
   workoutPlanId            String
-  workoutPlan              WorkoutPlan       @relation(fields: [workoutPlanId], references: [id])
+  workoutPlan              WorkoutPlan       @relation(fields: [workoutPlanId], references: [id], onDelete: Cascade)
   workoutExercises         WorkoutExercise[]
   isRest                   Boolean           @default(false)
   weekDay                  WeekDay
   sessions                 WorkoutSession[]
   estimatedDurationSeconds Int
+  coverImageUrl            String?
   createdAt                DateTime          @default(now()) @db.Timestamptz()
   updatedAt                DateTime          @updatedAt @db.Timestamptz()
 }
@@ -66,7 +68,7 @@ model WorkoutExercise {
   reps              Int
   restTimeInSeconds Int
   workoutDayId      String
-  workoutDay        WorkoutDay @relation(fields: [workoutDayId], references: [id])
+  workoutDay        WorkoutDay @relation(fields: [workoutDayId], references: [id], onDelete: Cascade)
   createdAt         DateTime   @default(now()) @db.Timestamptz()
   updatedAt         DateTime   @updatedAt @db.Timestamptz()
 }
@@ -74,7 +76,7 @@ model WorkoutExercise {
 model WorkoutSession {
   id           String     @id @default(uuid())
   workoutDayId String
-  workoutDay   WorkoutDay @relation(fields: [workoutDayId], references: [id])
+  workoutDay   WorkoutDay @relation(fields: [workoutDayId], references: [id], onDelete: Cascade)
   startedAt    DateTime   @db.Timestamptz()
   completedAt  DateTime   @db.Timestamptz()
   createdAt    DateTime   @default(now()) @db.Timestamptz()
@@ -85,8 +87,8 @@ model Session {
   id        String   @id
   expiresAt DateTime @db.Timestamptz()
   token     String
-  createdAt DateTime @default(now()) @db.Timestamptz()
-  updatedAt DateTime @updatedAt @db.Timestamptz()
+  createdAt DateTime @default(now()) 
+  updatedAt DateTime @updatedAt 
   ipAddress String?
   userAgent String?
   userId    String
@@ -106,12 +108,12 @@ model Account {
   accessToken           String?
   refreshToken          String?
   idToken               String?
-  accessTokenExpiresAt  DateTime? @db.Timestamptz()
-  refreshTokenExpiresAt DateTime? @db.Timestamptz()
+  accessTokenExpiresAt  DateTime? 
+  refreshTokenExpiresAt DateTime? 
   scope                 String?
   password              String?
-  createdAt             DateTime  @default(now()) @db.Timestamptz()
-  updatedAt             DateTime  @updatedAt @db.Timestamptz()
+  createdAt             DateTime  @default(now()) 
+  updatedAt             DateTime  @updatedAt
 
   @@index([userId])
   @@map("account")
@@ -122,8 +124,8 @@ model Verification {
   identifier String
   value      String
   expiresAt  DateTime
-  createdAt  DateTime @default(now()) @db.Timestamptz()
-  updatedAt  DateTime @updatedAt @db.Timestamptz()
+  createdAt  DateTime @default(now()) 
+  updatedAt  DateTime @updatedAt 
 
   @@index([identifier])
   @@map("verification")
