@@ -69,3 +69,4 @@ O projeto divide as responsabilidades em camadas distintas:
 - Formato: `<tipo>(escopo opcional): descrição`
 - Tipos mais comuns: `feat`, `fix`, `refactor`, `docs`, `chore`, `style`, `test`.
 - Exemplo: `feat(workout-session): add start workout session route`
+- **NUNCA** fazer commit sem permissão explícita do usuário. Sempre perguntar antes de commitar.
