@@ -8,6 +8,7 @@ import { auth } from "../lib/auth.js";
 import {
   ErrorSchema,
   startWorkoutSessionSchema,
+  updateWorkoutSessionSchema,
   workoutPlanSchema,
 } from "../schemas/index.js";
 import {
@@ -22,6 +23,11 @@ import {
   WorkoutPlanNotActiveError,
   WorkoutSessionAlreadyStartedError,
 } from "../usecases/StartWorkoutSession.js";
+import {
+  InputDto as UpdateSessionInputDto,
+  OutputDto as UpdateSessionOutputDto,
+  UpdateWorkoutSession,
+} from "../usecases/UpdateWorkoutSession.js";
 
 export const workoutPlanRoutes = async (app: FastifyInstance) => {
   app.withTypeProvider<ZodTypeProvider>().route({
@@ -157,6 +163,92 @@ export const workoutPlanRoutes = async (app: FastifyInstance) => {
           return reply.status(404).send({
             error: error.message,
             code: "WORKOUT_DAY_NOT_FOUND",
+          });
+        }
+        if (error instanceof Error && error.message === "Forbidden") {
+          return reply.status(403).send({
+            error: "Forbidden",
+            code: "FORBIDDEN",
+          });
+        }
+        throw error;
+      }
+    },
+  });
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: "PATCH",
+    url: "/:workoutPlanId/days/:workoutDayId/sessions/:workoutSessionId",
+    schema: {
+      tags: ["Workout Plan"],
+      summary: "Update a workout session",
+      description: "Updates a workout session with completion data",
+      params: z.object({
+        workoutPlanId: z.string().uuid(),
+        workoutDayId: z.string().uuid(),
+        workoutSessionId: z.string().uuid(),
+      }),
+      body: z.object({
+        completedAt: z.string().datetime(),
+      }),
+      response: {
+        200: updateWorkoutSessionSchema,
+        401: ErrorSchema,
+        403: ErrorSchema,
+        404: ErrorSchema,
+        500: ErrorSchema,
+      },
+    },
+    handler: async (request, reply) => {
+      const session = await auth.api.getSession({
+        headers: fromNodeHeaders(request.headers),
+      });
+      if (!session) {
+        return reply.status(401).send({
+          error: "Unauthorized",
+          code: "UNAUTHORIZED",
+        });
+      }
+
+      const dto: UpdateSessionInputDto = {
+        userId: session.user.id,
+        workoutPlanId: request.params.workoutPlanId,
+        workoutDayId: request.params.workoutDayId,
+        workoutSessionId: request.params.workoutSessionId,
+        completedAt: request.body.completedAt,
+      };
+
+      try {
+        const updateWorkoutSession = new UpdateWorkoutSession();
+        const result: UpdateSessionOutputDto =
+          await updateWorkoutSession.execute(dto);
+        return reply.status(200).send(result);
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message === "Workout plan not found"
+        ) {
+          return reply.status(404).send({
+            error: error.message,
+            code: "WORKOUT_PLAN_NOT_FOUND",
+          });
+        }
+        if (
+          error instanceof Error &&
+          error.message === "Workout day not found"
+        ) {
+          return reply.status(404).send({
+            error: error.message,
+            code: "WORKOUT_DAY_NOT_FOUND",
+          });
+        }
+        if (
+          error instanceof Error &&
+          error.message === "Workout session not found"
+        ) {
+          return reply.status(404).send({
+            error: error.message,
+            code: "WORKOUT_SESSION_NOT_FOUND",
           });
         }
         if (error instanceof Error && error.message === "Forbidden") {

@@ -33,3 +33,9 @@ export const workoutPlanSchema = z.object({
 export const startWorkoutSessionSchema = z.object({
   workoutSessionId: z.string().uuid(),
 });
+
+export const updateWorkoutSessionSchema = z.object({
+  id: z.string().uuid(),
+  completedAt: z.string().datetime(),
+  startedAt: z.string().datetime(),
+});
