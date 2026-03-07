@@ -108,22 +108,32 @@ export const workoutPlanRoutes = async (app: FastifyInstance) => {
         name: z.string().trim().min(1),
         coverImageUrl: z.string().url().optional(),
         workoutDays: z.array(
-          z.object({
-            name: z.string().trim().min(1),
-            weekDay: z.nativeEnum(WeekDay),
-            isRest: z.boolean().default(false),
-            coverImageUrl: z.string().url().optional(),
-            estimatedDurationInSeconds: z.number().min(1),
-            exercises: z.array(
-              z.object({
-                order: z.number().min(0),
-                name: z.string().trim().min(1),
-                sets: z.number().min(1),
-                reps: z.number().min(1),
-                restTimeInSeconds: z.number().min(1),
-              }),
-            ),
-          }),
+          z
+            .object({
+              name: z.string().trim().min(1),
+              weekDay: z.nativeEnum(WeekDay),
+              isRest: z.boolean().default(false),
+              coverImageUrl: z.string().url().optional(),
+              estimatedDurationInSeconds: z.number().min(1),
+              exercises: z.array(
+                z.object({
+                  order: z.number().min(0),
+                  name: z.string().trim().min(1),
+                  sets: z.number().min(1),
+                  reps: z.number().min(1),
+                  restTimeInSeconds: z.number().min(1),
+                }),
+              ),
+            })
+            .superRefine((data, ctx) => {
+              if (!data.isRest && data.exercises.length < 4) {
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  message: "A non-rest day must have at least 4 exercises",
+                  path: ["exercises"],
+                });
+              }
+            }),
         ),
       }),
       response: {

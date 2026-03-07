@@ -27,22 +27,26 @@ model User {
   updatedAt     DateTime      @updatedAt @db.Timestamptz()
   workoutPlans  WorkoutPlan[]
 
-  sessions Session[]
-  accounts Account[]
+  sessions            Session[]
+  accounts            Account[]
+  weigthInGrams       Int?
+  heightInCentimeters Int?
+  age                 Int?
+  bodyFatPercentage   Int? //100 representa 100%
 
   @@map("user")
 }
 
 model WorkoutPlan {
-  id          String       @id @default(uuid())
-  name           String
-  coverImageUrl  String?
-  userId         String
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  workoutDays WorkoutDay[]
-  isActive    Boolean      @default(true)
-  createdAt   DateTime     @default(now()) @db.Timestamptz()
-  updatedAt   DateTime     @updatedAt @db.Timestamptz()
+  id            String       @id @default(uuid())
+  name          String
+  coverImageUrl String?
+  userId        String
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workoutDays   WorkoutDay[]
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now()) @db.Timestamptz()
+  updatedAt     DateTime     @updatedAt @db.Timestamptz()
 }
 
 model WorkoutDay {
@@ -87,8 +91,8 @@ model Session {
   id        String   @id
   expiresAt DateTime @db.Timestamptz()
   token     String
-  createdAt DateTime @default(now()) 
-  updatedAt DateTime @updatedAt 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   ipAddress String?
   userAgent String?
   userId    String
@@ -108,11 +112,11 @@ model Account {
   accessToken           String?
   refreshToken          String?
   idToken               String?
-  accessTokenExpiresAt  DateTime? 
-  refreshTokenExpiresAt DateTime? 
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
   scope                 String?
   password              String?
-  createdAt             DateTime  @default(now()) 
+  createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
   @@index([userId])
@@ -124,8 +128,8 @@ model Verification {
   identifier String
   value      String
   expiresAt  DateTime
-  createdAt  DateTime @default(now()) 
-  updatedAt  DateTime @updatedAt 
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([identifier])
   @@map("verification")

@@ -152,50 +152,64 @@ export const aiRoutes = async (app: FastifyInstance) => {
               name: z.string().describe("Nome do plano de treino"),
               workoutDays: z
                 .array(
-                  z.object({
-                    name: z
-                      .string()
-                      .trim()
-                      .min(1)
-                      .describe(
-                        "Nome do dia de treino (ex: Peito e Triceps, Descanso, etc.)",
+                  z
+                    .object({
+                      name: z
+                        .string()
+                        .trim()
+                        .min(1)
+                        .describe(
+                          "Nome do dia de treino (ex: Peito e Triceps, Descanso, etc.)",
+                        ),
+                      weekDay: z.enum(WeekDay).describe("Dia da semana"),
+                      isRest: z
+                        .boolean()
+                        .default(false)
+                        .describe("Se é um dia de descanso"),
+                      coverImageUrl: z
+                        .string()
+                        .url()
+                        .describe("URL da imagem de capa do dia"),
+                      estimatedDurationInSeconds: z
+                        .number()
+                        .min(0)
+                        .describe("Duração estimada em segundos"),
+                      exercises: z.array(
+                        z.object({
+                          order: z
+                            .number()
+                            .min(0)
+                            .describe("Ordem do exercício"),
+                          name: z
+                            .string()
+                            .trim()
+                            .min(1)
+                            .describe("Nome do exercício"),
+                          sets: z
+                            .number()
+                            .min(1)
+                            .describe("Quantidade de séries"),
+                          reps: z
+                            .number()
+                            .min(1)
+                            .describe("Quantidade de repetições"),
+                          restTimeInSeconds: z
+                            .number()
+                            .min(1)
+                            .describe("Tempo de descanso em segundos"),
+                        }),
                       ),
-                    weekDay: z.enum(WeekDay).describe("Dia da semana"),
-                    isRest: z
-                      .boolean()
-                      .default(false)
-                      .describe("Se é um dia de descanso"),
-                    coverImageUrl: z
-                      .string()
-                      .url()
-                      .describe("URL da imagem de capa do dia"),
-                    estimatedDurationInSeconds: z
-                      .number()
-                      .min(0)
-                      .describe("Duração estimada em segundos"),
-                    exercises: z.array(
-                      z.object({
-                        order: z.number().min(0).describe("Ordem do exercício"),
-                        name: z
-                          .string()
-                          .trim()
-                          .min(1)
-                          .describe("Nome do exercício"),
-                        sets: z
-                          .number()
-                          .min(1)
-                          .describe("Quantidade de séries"),
-                        reps: z
-                          .number()
-                          .min(1)
-                          .describe("Quantidade de repetições"),
-                        restTimeInSeconds: z
-                          .number()
-                          .min(1)
-                          .describe("Tempo de descanso em segundos"),
-                      }),
-                    ),
-                  }),
+                    })
+                    .superRefine((data, ctx) => {
+                      if (!data.isRest && data.exercises.length < 4) {
+                        ctx.addIssue({
+                          code: z.ZodIssueCode.custom,
+                          message:
+                            "A non-rest day must have at least 4 exercises.",
+                          path: ["exercises"],
+                        });
+                      }
+                    }),
                 )
                 .min(7)
                 .max(7)
